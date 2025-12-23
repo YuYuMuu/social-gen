@@ -161,8 +161,8 @@
 
     <main class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
         
-        <!-- Section Prévisualisation -->
-        <section class="md:col-span-5 w-full sticky top-4 self-start">
+        <!-- Section Prévisualisation : relative sur mobile, sticky sur md+ -->
+        <section class="md:col-span-5 w-full relative md:sticky top-4 self-start">
             <div class="canvas-container bg-white rounded-2xl overflow-hidden w-full flex flex-col border border-gray-100">
                 <div class="bg-gray-50 p-3 border-b flex justify-between items-center text-center">
                     <span id="formatLabel" class="text-[11px] font-bold text-gray-400 tracking-widest flex-1 uppercase">Format carré (1080x1080)</span>
@@ -340,7 +340,6 @@
         const logoSvg = document.getElementById('main-logo-svg');
         const logoCenter = document.getElementById('logo-center');
         
-        // Interaction JS légère en plus du CSS pour réagir au clic sur le logo
         logoSvg.addEventListener('mousedown', () => {
             logoCenter.style.transition = "transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
             logoCenter.style.transform = "scale(1.8)";
@@ -502,13 +501,8 @@
             updateProgress();
         }
 
-        /**
-         * Génère un bloc XMP minimal compatible Photoshop
-         */
         function generateXMP(meta) {
             const now = new Date().toISOString();
-            
-            // Formatage des mots-clés en RDF Sequence
             const keywordSeq = meta.keywords.split(',')
                 .map(k => k.trim())
                 .filter(k => k.length > 0)
@@ -535,26 +529,21 @@
 <?xpacket end="r"?>`;
         }
 
-        /**
-         * Injecte l'XMP dans le JPG (Marker APP1)
-         */
         async function injectXMPToJPEG(blob, xmpString) {
             const buffer = await blob.arrayBuffer();
             const view = new Uint8Array(buffer);
-            
             const xmpPrefix = "http://ns.adobe.com/xap/1.0/\0";
             const xmpData = new TextEncoder().encode(xmpPrefix + xmpString);
-            
             const segmentHeader = new Uint8Array([0xFF, 0xE1]);
             const length = xmpData.length + 2;
             const lengthBytes = new Uint8Array([(length >> 8) & 0xFF, length & 0xFF]);
             
             const newBlob = new Blob([
-                view.slice(0, 2), // SOI
+                view.slice(0, 2),
                 segmentHeader,
                 lengthBytes,
                 xmpData,
-                view.slice(2) // Reste du fichier
+                view.slice(2)
             ], { type: 'image/jpeg' });
             
             return newBlob;
@@ -562,7 +551,6 @@
 
         async function downloadVisuel() {
             if (downloadBtn.classList.contains('btn-disabled')) return;
-            
             const meta = {
                 author: document.getElementById('metaAuthor').value || "SocialGen User",
                 credit: document.getElementById('metaCredit').value || "",
@@ -575,19 +563,15 @@
 
             canvas.toBlob(async (blob) => {
                 let finalBlob = blob;
-                
                 if (state.exportFormat === 'jpg') {
                     const xmp = generateXMP(meta);
                     finalBlob = await injectXMPToJPEG(blob, xmp);
                 }
-
                 const url = URL.createObjectURL(finalBlob);
                 const link = document.createElement('a');
                 link.href = url;
-                
                 const safeAuthor = meta.author.replace(/[^a-z0-9]/gi, '_').toLowerCase();
                 const filename = `socialgen_${state.formatName}_${canvas.width}x${canvas.height}-${safeAuthor}.${state.exportFormat}`;
-                
                 link.download = filename;
                 document.body.appendChild(link);
                 link.click();
@@ -595,7 +579,6 @@
             }, type, quality);
         }
 
-        // --- EVENTS ---
         canvas.addEventListener('mousedown', startDrag);
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrag(e); }, { passive: false });
         window.addEventListener('mousemove', doDrag);
@@ -668,15 +651,12 @@
         document.querySelectorAll('.format-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                // Reset styles to standard gray border
                 document.querySelectorAll('.format-btn').forEach(b => {
-                    b.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700', 'border');
-                    b.classList.add('border-gray-300', 'border');
+                    b.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
+                    b.classList.add('border-gray-300');
                 });
-                // Set active style
                 btn.classList.remove('border-gray-300');
                 btn.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
-                
                 canvas.width = btn.dataset.w;
                 canvas.height = btn.dataset.h;
                 state.formatName = btn.dataset.label;
@@ -704,9 +684,7 @@
 
         document.getElementById('posCenter').addEventListener('click', () => { state.textPosition = 'center'; render(); });
         document.getElementById('posBottom').addEventListener('click', () => { state.textPosition = 'bottom'; render(); });
-
         downloadBtn.addEventListener('click', (e) => { e.preventDefault(); downloadVisuel(); });
-
         window.onload = () => render();
     </script>
 </body>
