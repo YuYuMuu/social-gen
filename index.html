@@ -648,6 +648,19 @@
         document.getElementById('subtitleInput').addEventListener('input', (e) => { state.subtitle = e.target.value; render(); });
         document.getElementById('colorInput').addEventListener('input', (e) => { state.textColor = e.target.value; document.getElementById('colorHex').innerText = e.target.value.toUpperCase(); render(); });
         
+        // --- NOUVEAUX ÉCOUTEURS POUR L'OMBRE ---
+        document.getElementById('shadowBlurInput').addEventListener('input', (e) => {
+            state.shadowBlur = parseInt(e.target.value);
+            document.getElementById('shadowBlurVal').innerText = `${state.shadowBlur}px`;
+            render();
+        });
+
+        document.getElementById('shadowAlphaInput').addEventListener('input', (e) => {
+            state.shadowAlpha = parseFloat(e.target.value);
+            document.getElementById('shadowAlphaVal').innerText = state.shadowAlpha.toFixed(2);
+            render();
+        });
+
         document.querySelectorAll('.format-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
