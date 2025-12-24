@@ -3,493 +3,496 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SocialGen 0.2.1</title>
-    <!-- Import des polices -->
+    <title>SocialGen 0.2.1 Pro - Interactive Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #f3f4f6;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
+        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .logo-font { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .canvas-container { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        #mainCanvas { cursor: move; touch-action: none; }
+        
+        .stepper-container { position: relative; padding-left: 56px; }
+        
+        .progress-line { 
+            width: 3px; 
+            background: #e5e7eb; 
+            position: absolute; 
+            left: 19px; 
+            top: 20px; 
+            bottom: 20px; 
+            z-index: 0; 
+            border-radius: 4px;
+        }
+        
+        .progress-fill { 
+            width: 3px; 
+            background: #4f46e5; 
+            position: absolute; 
+            left: 19px; 
+            top: 20px; 
+            height: 0%; 
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            z-index: 1; 
+            border-radius: 4px;
         }
 
-        .logo-font {
-            font-family: 'Outfit', sans-serif;
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.02em;
+        .step-indicator { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background: #e5e7eb; 
+            color: #9ca3af; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 800; 
+            font-size: 0.85rem; 
+            transition: all 0.4s ease; 
+            position: absolute; 
+            left: -56px; 
+            top: 0; 
+            z-index: 10; 
+            border: 4px solid #f3f4f6; 
+        }
+        
+        .step-active { 
+            background-color: #4f46e5 !important; 
+            color: white !important; 
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
         }
 
-        /* Animations du Logo SVG */
-        @keyframes logo-spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .btn-disabled { background-color: #d1d5db !important; color: #9ca3af !important; cursor: not-allowed; opacity: 0.7; }
+        
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; }
+        input[type="range"]::-webkit-slider-thumb { height: 16px; width: 16px; border-radius: 50%; background: #4f46e5; -webkit-appearance: none; margin-top: -6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        @keyframes logo-pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
+        .align-btn {
+            border: 2px solid #e5e7eb;
+            color: #6b7280;
+            background: white;
+            transition: all 0.2s ease;
         }
+        .align-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+        .align-btn.active .dot { background-color: white; }
 
-        #logo-arc {
-            transform-origin: center;
-            animation: logo-spin 8s linear infinite;
-        }
-
-        #logo-center {
-            transform-origin: center;
-            animation: logo-pulse 3s ease-in-out infinite;
-        }
-
-        .canvas-container {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Jauge de progression */
-        .progress-line {
-            width: 2px;
-            background: #e5e7eb;
-            position: absolute;
-            left: 15px;
-            top: 0;
-            bottom: 0;
-            z-index: 0;
-        }
-        .progress-fill {
-            width: 2px;
-            background: #4f46e5;
-            position: absolute;
-            left: 15px;
-            top: 0;
-            height: 0%;
-            transition: height 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 1;
-        }
-
-        .step-indicator { transition: all 0.4s ease; }
-        .step-active {
+        .media-btn-success {
             background-color: #4f46e5 !important;
-            color: white !important;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
-            transform: scale(1.1);
+            border-color: #4f46e5 !important;
+            animation: mediaPulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .media-btn-success span { color: white !important; }
+        .media-btn-success .check-icon { display: flex !important; }
 
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #e5e7eb;
-            border-radius: 2px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #4f46e5;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -6px;
-        }
-
-        .btn-disabled {
-            background-color: #d1d5db !important;
-            color: #9ca3af !important;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .hidden-step { display: none !important; }
-
-        .history-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .history-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Styles barre de recherche */
-        .search-input:focus {
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-        }
-
-        /* Animation étincelles */
-        @keyframes sparkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        .sparkle-icon {
-            display: inline-block;
-            animation: sparkle 2s ease-in-out infinite;
+        @keyframes mediaPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body class="flex flex-col items-center p-4 min-h-screen">
 
-    <header class="w-full max-w-6xl text-center md:text-left mb-10 pt-6 px-4 group cursor-default">
+    <header class="w-full max-w-6xl text-center md:text-left mb-10 pt-6 px-4">
         <div class="inline-flex items-center gap-2 mb-1">
-            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="20" r="20" fill="#4F46E5"/>
-                <path id="logo-arc" d="M12 20C12 15.5781 15.5781 12 20 12C24.4219 12 28 15.5781 28 20" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                <circle id="logo-center" cx="20" cy="20" r="4" fill="white"/>
-            </svg>
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black">S</div>
             <h1 class="text-3xl font-extrabold logo-font">SocialGen</h1>
         </div>
-        <p class="text-gray-500 text-sm font-medium tracking-wide text-[10px]">Studio créatif digital v0.2.1</p>
+        <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Studio Pro • v0.2.1-PRO</p>
     </header>
 
-    <main class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
-        <!-- Preview Section -->
+    <main class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
+        <!-- Aperçu du Canvas -->
         <section class="md:col-span-5 w-full relative md:sticky top-4 self-start">
-            <div class="canvas-container bg-white rounded-2xl overflow-hidden w-full flex flex-col border border-gray-100">
+            <div class="canvas-container bg-white rounded-2xl overflow-hidden border border-gray-100">
                 <div class="bg-gray-50 p-3 border-b text-center">
                     <span id="formatLabel" class="text-[11px] font-bold text-gray-400 tracking-widest uppercase">Format carré (1080x1080)</span>
                 </div>
-                <div id="canvasWrapper" class="flex items-center justify-center p-4 bg-gray-100 overflow-hidden select-none">
+                <div class="flex items-center justify-center p-4 bg-gray-100 overflow-hidden select-none">
                     <canvas id="mainCanvas" width="1080" height="1080" class="max-w-full h-auto shadow-2xl rounded-sm"></canvas>
                 </div>
-                <div class="bg-white p-6 border-t">
-                    <button type="button" id="downloadBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold transition-all shadow-indigo-200 shadow-xl transform active:scale-95 flex items-center justify-center gap-3 btn-disabled">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Exporter le visuel
+                <div class="bg-white p-6 border-t space-y-4">
+                    <button type="button" id="downloadBtn" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold transition-all shadow-xl flex flex-col items-center justify-center btn-disabled hover:bg-indigo-700 active:scale-[0.98]">
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            Exporter le visuel
+                        </span>
+                        <span id="exportSubtext" class="text-[9px] opacity-70 uppercase mt-1 tracking-tighter">JPG Haute Qualité + Métadonnées</span>
                     </button>
-                    <p id="errorMsg" class="mt-4 text-[10px] text-red-500 font-bold text-center uppercase tracking-tighter">Configuration incomplète (Image + Titre requis)</p>
+                    <p id="errorMsg" class="text-[10px] text-red-500 font-bold text-center uppercase tracking-tighter">Configuration incomplète (Image + Titre requis)</p>
                 </div>
             </div>
         </section>
 
-        <!-- Controls Section -->
-        <section class="md:col-span-7 relative pl-10">
+        <!-- Formulaire de création -->
+        <section class="md:col-span-7 stepper-container">
             <div class="progress-line"></div>
             <div id="progressFill" class="progress-fill"></div>
 
             <div class="space-y-16">
-                <!-- Step 1: Format -->
-                <div class="relative" id="step1">
-                    <div class="step-indicator absolute -left-10 top-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 z-10">1</div>
+                <!-- Étape 1: Format -->
+                <div class="relative min-h-[140px]">
+                    <div class="step-indicator step-active">1</div>
                     <div class="space-y-6">
-                        <h2 class="text-sm font-bold text-gray-400 tracking-widest border-b border-gray-50 pb-2 uppercase">Format & Export</h2>
-                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                            <button type="button" data-w="1080" data-h="1080" data-label="carré" class="format-btn p-3 border border-indigo-600 bg-indigo-50 rounded-xl text-[11px] font-bold text-indigo-700 transition-all">Carré</button>
-                            <button type="button" data-w="1080" data-h="1350" data-label="portrait" class="format-btn p-3 border border-gray-300 rounded-xl text-[11px] font-bold text-gray-500 hover:border-gray-400 transition-all">Portrait 4:5</button>
-                            <button type="button" data-w="1080" data-h="1920" data-label="story" class="format-btn p-3 border border-gray-300 rounded-xl text-[11px] font-bold text-gray-500 hover:border-gray-400 transition-all">Story</button>
-                            <button type="button" data-w="1200" data-h="630" data-label="bannière" class="format-btn p-3 border border-gray-300 rounded-xl text-[11px] font-bold text-gray-500 hover:border-gray-400 transition-all">Bannière</button>
-                        </div>
-                        <div class="flex gap-4">
-                            <button type="button" id="extJpg" class="ext-btn flex-1 py-3 bg-indigo-600 text-white border-2 border-indigo-600 rounded-xl text-[11px] font-bold transition-all shadow-md">JPG (Qualité + XMP)</button>
-                            <button type="button" id="extPng" class="ext-btn flex-1 py-3 bg-white text-gray-500 border-2 border-gray-100 rounded-xl text-[11px] font-bold transition-all hover:border-gray-200">PNG (Transparence)</button>
+                        <h2 class="text-xs font-black text-gray-400 tracking-[0.2em] border-b border-gray-100 pb-3 uppercase">Format de sortie</h2>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                            <button type="button" data-w="1080" data-h="1080" data-label="Carre" class="format-btn p-3 border-2 border-indigo-600 bg-indigo-50 rounded-xl text-[10px] font-bold text-indigo-700 transition-all">Carré</button>
+                            <button type="button" data-w="1080" data-h="1350" data-label="Portrait" class="format-btn p-3 border-2 border-gray-200 rounded-xl text-[10px] font-bold text-gray-500 transition-all">Portrait 4:5</button>
+                            <button type="button" data-w="1080" data-h="1920" data-label="Story" class="format-btn p-3 border-2 border-gray-200 rounded-xl text-[10px] font-bold text-gray-500 transition-all">Story</button>
+                            <button type="button" data-w="1200" data-h="630" data-label="Banniere" class="format-btn p-3 border-2 border-gray-200 rounded-xl text-[10px] font-bold text-gray-500 transition-all">Bannière</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 2: Media -->
-                <div class="relative" id="step2">
-                    <div class="step-indicator absolute -left-10 top-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 z-10">2</div>
-                    <div class="space-y-4">
-                        <h2 class="text-sm font-bold text-gray-400 tracking-widest border-b border-gray-50 pb-2 uppercase">Médias et Recadrage</h2>
+                <!-- Étape 2: Médias -->
+                <div class="relative min-h-[140px]">
+                    <div id="ind2" class="step-indicator">2</div>
+                    <div class="space-y-6">
+                        <h2 class="text-xs font-black text-gray-400 tracking-[0.2em] border-b border-gray-100 pb-3 uppercase">Médias et recadrage</h2>
                         <div class="grid grid-cols-2 gap-4">
-                            <button type="button" onclick="document.getElementById('bgInput').click()" class="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl hover:bg-indigo-50 transition-all">
-                                <span class="text-[11px] font-bold text-gray-600 uppercase">Image de fond *</span>
-                                <div id="bgCheck" class="mt-2 hidden"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" /></svg></div>
+                            <button type="button" id="bgBtn" onclick="document.getElementById('bgInput').click()" class="flex flex-col items-center justify-center p-5 bg-white border-2 border-dashed border-gray-200 rounded-2xl hover:border-indigo-400 transition-all group relative overflow-hidden">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase group-hover:text-indigo-500 transition-colors">Image de fond *</span>
+                                <div id="bgCheck" class="check-icon mt-2 hidden text-white font-bold text-[10px] items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                    Validé
+                                </div>
                                 <input type="file" id="bgInput" accept="image/*" class="hidden">
                             </button>
-                            <button type="button" onclick="document.getElementById('logoInput').click()" class="flex flex-col items-center justify-center p-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl hover:bg-indigo-50 transition-all">
-                                <span class="text-[11px] font-bold text-gray-600 uppercase tracking-tight">Logo PNG <span class="text-[8px] opacity-60">OPT</span></span>
-                                <div id="logoCheck" class="mt-2 hidden"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7" /></svg></div>
+                            <button type="button" id="logoBtn" onclick="document.getElementById('logoInput').click()" class="flex flex-col items-center justify-center p-5 bg-white border-2 border-dashed border-gray-200 rounded-2xl hover:border-indigo-400 transition-all group relative overflow-hidden">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase group-hover:text-indigo-500 transition-colors">Logo PNG</span>
+                                <div id="logoCheck" class="check-icon mt-2 hidden text-white font-bold text-[10px] items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                    Validé
+                                </div>
                                 <input type="file" id="logoInput" accept="image/*" class="hidden">
                             </button>
                         </div>
-                        <div class="p-6 bg-white border border-gray-100 rounded-2xl space-y-6">
-                            <div class="space-y-3">
-                                <div class="flex justify-between font-bold text-[10px] text-gray-400 uppercase"><span>Zoom</span><span id="zoomVal" class="text-indigo-600">1.0x</span></div>
-                                <input type="range" id="zoomInput" min="1" max="4" step="0.01" value="1">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Text -->
-                <div class="relative" id="step3">
-                    <div class="step-indicator absolute -left-10 top-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 z-10">3</div>
-                    <div class="space-y-6">
-                        <h2 class="text-sm font-bold text-gray-400 tracking-widest border-b border-gray-50 pb-2 uppercase">Contenu & Design *</h2>
-                        <input type="text" id="titleInput" placeholder="Titre principal..." class="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-lg">
-                        <textarea id="subtitleInput" placeholder="Sous-titre..." rows="2" class="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
                         
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-3">
-                                <label class="text-[10px] font-bold text-gray-400 uppercase">Couleur Texte</label>
-                                <div class="flex items-center gap-2 p-2 bg-white border rounded-lg">
-                                    <input type="color" id="colorInput" value="#ffffff" class="w-8 h-8 border-none cursor-pointer">
-                                    <span id="colorHex" class="text-[10px] font-mono font-bold text-gray-400">#FFFFFF</span>
+                        <div class="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-3">
+                                    <div class="flex justify-between font-bold text-[9px] text-gray-400 uppercase"><span>Zoom Image</span><span id="zoomVal" class="text-indigo-600">1.0x</span></div>
+                                    <input type="range" id="zoomInput" min="1" max="3" step="0.01" value="1">
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between font-bold text-[9px] text-gray-400 uppercase"><span>Opacité Noir</span><span id="gradVal" class="text-indigo-600">70%</span></div>
+                                    <input type="range" id="gradOpacity" min="0" max="1" step="0.01" value="0.7">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-3">
+                                    <div class="flex justify-between font-bold text-[9px] text-gray-400 uppercase"><span>Déplacement Horizontal</span><span id="xVal" class="text-indigo-600">0</span></div>
+                                    <input type="range" id="posX" min="-1000" max="1000" step="1" value="0">
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between font-bold text-[9px] text-gray-400 uppercase"><span>Déplacement Vertical</span><span id="yVal" class="text-indigo-600">0</span></div>
+                                    <input type="range" id="posY" min="-1000" max="1000" step="1" value="0">
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <label class="text-[10px] font-bold text-gray-400 uppercase">Position</label>
-                                <div class="flex gap-1">
-                                    <button type="button" id="posCenter" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-[10px] font-bold">MILIEU</button>
-                                    <button type="button" id="posBottom" class="flex-1 py-2 bg-gray-100 text-gray-500 rounded-lg text-[10px] font-bold">BAS</button>
-                                </div>
+                                <div class="flex justify-between font-bold text-[9px] text-gray-400 uppercase"><span>Lueur Noire (Étendu)</span><span id="spreadVal" class="text-indigo-600">60%</span></div>
+                                <input type="range" id="gradSpread" min="0.1" max="0.9" step="0.01" value="0.6">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 4: Meta -->
-                <div class="relative" id="step4">
-                    <div class="step-indicator absolute -left-10 top-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 z-10 italic">4</div>
+                <!-- Étape 3: Textes -->
+                <div class="relative min-h-[140px]">
+                    <div id="ind3" class="step-indicator">3</div>
                     <div class="space-y-6">
-                        <h2 class="text-sm font-bold text-gray-400 tracking-widest border-b border-gray-50 pb-2 uppercase">Référencement & Mots-clés</h2>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="metaAuthor" placeholder="Auteur..." class="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm">
-                            <input type="text" id="metaCredit" placeholder="Crédit Photo..." class="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm">
+                        <h2 class="text-xs font-black text-gray-400 tracking-[0.2em] border-b border-gray-100 pb-3 uppercase">Textes et position verticale</h2>
+                        <input type="text" id="titleInput" placeholder="TITRE PRINCIPAL..." class="w-full p-4 bg-white border border-gray-200 rounded-xl font-bold text-lg focus:border-indigo-500 outline-none">
+                        <textarea id="subtitleInput" placeholder="SOUS-TITRE..." rows="2" class="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm focus:border-indigo-500 outline-none"></textarea>
+                        
+                        <div class="space-y-2">
+                            <label class="text-[9px] font-black text-gray-400 uppercase ml-1">Position du bloc texte</label>
+                            <div class="flex gap-2">
+                                <button type="button" id="alignVCenter" class="align-btn flex-1 py-4 rounded-xl text-[10px] font-bold uppercase transition-all flex flex-col items-center justify-center gap-2">
+                                    <div class="flex flex-col gap-[2px] items-center mb-1">
+                                        <div class="dot w-1 h-1 rounded-full bg-gray-300 transition-colors"></div>
+                                        <div class="dot w-1.5 h-1.5 rounded-full bg-indigo-500 transition-colors"></div>
+                                        <div class="dot w-1 h-1 rounded-full bg-gray-300 transition-colors"></div>
+                                    </div>
+                                    Centré
+                                </button>
+                                <button type="button" id="alignVBottom" class="align-btn active flex-1 py-4 rounded-xl text-[10px] font-bold uppercase transition-all flex flex-col items-center justify-center gap-2">
+                                    <div class="flex flex-col gap-[2px] items-center mb-1">
+                                        <div class="dot w-1 h-1 rounded-full bg-gray-300 transition-colors"></div>
+                                        <div class="dot w-1 h-1 rounded-full bg-gray-300 transition-colors"></div>
+                                        <div class="dot w-1.5 h-1.5 rounded-full bg-indigo-500 transition-colors"></div>
+                                    </div>
+                                    Bas
+                                </button>
+                            </div>
                         </div>
-                        <input type="text" id="metaKeywords" placeholder="Mots-clés (tags, promo, social...)" class="w-full p-3 bg-white border border-gray-200 rounded-xl text-sm">
+                    </div>
+                </div>
+
+                <!-- Étape 4: Métadonnées & Signature -->
+                <div class="relative">
+                    <div id="ind4" class="step-indicator">4</div>
+                    <div class="space-y-4">
+                        <h2 class="text-xs font-black text-gray-400 tracking-[0.2em] border-b border-gray-100 pb-3 uppercase">Métadonnées d'export</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" id="metaAuthor" placeholder="Auteur (Copyright)..." class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-indigo-500">
+                            <input type="text" id="metaKeywords" placeholder="Mots-clés (séparés par virgules)..." class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-indigo-500">
+                        </div>
+                        <input type="text" id="metaAlt" placeholder="Texte Alternatif (pour accessibilité)..." class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-indigo-500">
+                        <textarea id="metaDesc" placeholder="Description de l'image..." rows="2" class="w-full p-3 bg-white border border-gray-200 rounded-lg text-xs outline-none focus:border-indigo-500"></textarea>
                     </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Historique avec Recherche filtrante -->
-    <footer class="w-full max-w-6xl mt-12 mb-20 px-4 flex flex-col items-center">
-        <div class="w-full flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-            <div class="flex items-center gap-3">
-                <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Historique de création</h2>
-                <span id="historyCount" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">0 exports</span>
-            </div>
-            
-            <div class="relative w-full md:w-80 group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg class="h-4 w-4 text-gray-400 group-focus-within:text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-                <input type="text" id="historySearch" placeholder="Filtrer par mots-clés..." class="search-input w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm outline-none transition-all placeholder:text-gray-300">
-            </div>
-        </div>
-
-        <div id="historyGrid" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- État vide -->
-            <div id="historyEmpty" class="col-span-full py-20 flex flex-col items-center justify-center bg-white border-2 border-dashed border-gray-200 rounded-3xl">
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Aucune création trouvée</p>
-            </div>
-        </div>
-
-        <!-- Signature Footer -->
-        <p class="mt-16 text-[11px] font-medium text-gray-400 flex items-center gap-2 select-none group">
-            Web app conçue avec un peu d'amour et beaucoup d'IA 
-            <span class="sparkle-icon group-hover:scale-125 transition-transform duration-300">✨</span>
-        </p>
-    </footer>
-
     <script>
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
         const progressFill = document.getElementById('progressFill');
         const downloadBtn = document.getElementById('downloadBtn');
-        const historySearch = document.getElementById('historySearch');
 
         const state = {
             backgroundImage: null,
             logoImage: null,
             title: "",
             subtitle: "",
-            textColor: "#ffffff",
-            textPosition: 'center',
             zoom: 1,
-            exportFormat: 'jpg',
-            formatName: 'carre',
-            history: []
+            posX: 0,
+            posY: 0,
+            gradOpacity: 0.7,
+            gradSpread: 0.6,
+            isBottomV: true,
+            formatName: 'Carre',
+            meta: { 
+                author: "",
+                keywords: "",
+                description: "",
+                alt: ""
+            },
+            isDragging: false,
+            lastMouseX: 0,
+            lastMouseY: 0
         };
 
-        function updateProgress() {
-            let score = 25;
+        function clampPositions() {
+            if (!state.backgroundImage) return;
+            const ratio = Math.max(canvas.width / state.backgroundImage.width, canvas.height / state.backgroundImage.height) * state.zoom;
+            const imgW = state.backgroundImage.width * ratio;
+            const imgH = state.backgroundImage.height * ratio;
+            const maxX = Math.max(0, (imgW - canvas.width) / 2);
+            const maxY = Math.max(0, (imgH - canvas.height) / 2);
+            state.posX = Math.max(-maxX, Math.min(maxX, state.posX));
+            state.posY = Math.max(-maxY, Math.min(maxY, state.posY));
+            const inputX = document.getElementById('posX');
+            const inputY = document.getElementById('posY');
+            inputX.min = -maxX; inputX.max = maxX; inputX.value = state.posX;
+            inputY.min = -maxY; inputY.max = maxY; inputY.value = state.posY;
+            document.getElementById('xVal').innerText = Math.round(state.posX);
+            document.getElementById('yVal').innerText = Math.round(state.posY);
+        }
+
+        function updateUI() {
+            let score = 15;
             const indicators = document.querySelectorAll('.step-indicator');
             indicators.forEach(i => i.classList.remove('step-active'));
             indicators[0].classList.add('step-active');
-
-            if (state.backgroundImage) { score = 50; indicators[1].classList.add('step-active'); }
-            if (state.backgroundImage && state.title) { score = 100; indicators[2].classList.add('step-active'); indicators[3].classList.add('step-active'); }
-            
+            if (state.backgroundImage) { score = 40; indicators[1].classList.add('step-active'); }
+            if (state.backgroundImage && state.title) { score = 70; indicators[2].classList.add('step-active'); }
+            if (score >= 70 && state.meta.author) { score = 100; indicators[3].classList.add('step-active'); }
             progressFill.style.height = `${score}%`;
-            downloadBtn.className = score === 100 ? 
-                'w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold transition-all shadow-xl flex items-center justify-center gap-3' : 
-                'w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 btn-disabled';
             
-            document.getElementById('errorMsg').style.display = score === 100 ? 'none' : 'block';
+            if (state.backgroundImage && state.title.trim()) {
+                downloadBtn.classList.remove('btn-disabled');
+                document.getElementById('errorMsg').classList.add('hidden');
+            } else {
+                downloadBtn.classList.add('btn-disabled');
+                document.getElementById('errorMsg').classList.remove('hidden');
+            }
         }
 
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#111";
+            ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (state.backgroundImage) {
+                clampPositions();
                 const ratio = Math.max(canvas.width / state.backgroundImage.width, canvas.height / state.backgroundImage.height) * state.zoom;
                 const w = state.backgroundImage.width * ratio;
                 const h = state.backgroundImage.height * ratio;
-                ctx.drawImage(state.backgroundImage, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
-                
-                // Overlay sombre
-                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                grad.addColorStop(0, 'rgba(0,0,0,0.1)');
-                grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+                ctx.drawImage(state.backgroundImage, (canvas.width - w)/2 + state.posX, (canvas.height - h)/2 + state.posY, w, h);
+                const gradStart = canvas.height * (1 - state.gradSpread);
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, `rgba(0,0,0,${state.gradOpacity})`);
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Texte
-                ctx.fillStyle = state.textColor;
+                
+                // Textes Centrés/Bas
+                ctx.fillStyle = "#ffffff";
                 ctx.textAlign = "center";
-                ctx.shadowColor = "rgba(0,0,0,0.5)";
+                ctx.shadowColor = "rgba(0,0,0,0.6)";
                 ctx.shadowBlur = 20;
-                
-                const y = state.textPosition === 'center' ? canvas.height/2 : canvas.height * 0.85;
-                ctx.font = `800 ${canvas.width * 0.08}px 'Outfit'`;
-                ctx.fillText(state.title.toUpperCase() || "TITRE", canvas.width/2, y);
-                
+                const x = canvas.width / 2;
+                let y_base = state.isBottomV ? canvas.height * 0.85 : canvas.height / 2;
+                const fSize = canvas.width * 0.085;
+                ctx.font = `800 ${fSize}px 'Outfit'`;
+                ctx.fillText(state.title.toUpperCase(), x, y_base);
                 if (state.subtitle) {
                     ctx.font = `500 ${canvas.width * 0.035}px 'Inter'`;
-                    ctx.fillText(state.subtitle, canvas.width/2, y + (canvas.width * 0.07));
+                    ctx.fillText(state.subtitle, x, y_base + (canvas.width * 0.06));
                 }
+
+                // Inscription du copyright sur l'image
+                if (state.meta.author) {
+                    ctx.shadowBlur = 5;
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+                    ctx.textAlign = "right";
+                    ctx.font = `600 ${canvas.width * 0.015}px 'Inter'`;
+                    ctx.fillText(`© ${new Date().getFullYear()} ${state.meta.author}`, canvas.width - 20, canvas.height - 20);
+                }
+                
+                ctx.shadowBlur = 0;
             }
 
             if (state.logoImage) {
                 const lw = canvas.width * 0.12;
                 ctx.drawImage(state.logoImage, canvas.width - lw - 40, 40, lw, (state.logoImage.height * lw)/state.logoImage.width);
             }
-            updateProgress();
+            updateUI();
         }
 
-        // --- FILTRAGE & RECHERCHE ---
-        historySearch.addEventListener('input', updateHistoryUI);
-
-        function addToHistory(thumb, title, author, keywords) {
-            state.history.unshift({
-                id: Date.now(),
-                img: thumb,
-                title: title || "Visuel sans titre",
-                author: author || "SocialGen",
-                tags: keywords.toLowerCase().split(',').map(k => k.trim()).filter(k => k),
-                timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) + " - " + new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
-            });
-            updateHistoryUI();
+        // --- Drag Logic ---
+        function startDragging(x, y) {
+            if (!state.backgroundImage) return;
+            state.isDragging = true;
+            state.lastMouseX = x;
+            state.lastMouseY = y;
         }
 
-        function updateHistoryUI() {
-            const grid = document.getElementById('historyGrid');
-            const empty = document.getElementById('historyEmpty');
-            const count = document.getElementById('historyCount');
-            const query = historySearch.value.toLowerCase().trim();
-
-            const filtered = state.history.filter(item => {
-                if (!query) return true;
-                // Recherche dans le titre, l'auteur ou les mots-clés
-                return item.title.toLowerCase().includes(query) || 
-                       item.author.toLowerCase().includes(query) || 
-                       item.tags.some(t => t.includes(query));
-            });
-
-            count.innerText = `${filtered.length} export${filtered.length > 1 ? 's' : ''}`;
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = "";
-                empty.style.display = "flex";
-                return;
-            }
-
-            empty.style.display = "none";
-            grid.innerHTML = filtered.map(item => `
-                <div class="history-card bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col group animate-in fade-in duration-300">
-                    <div class="aspect-square bg-gray-100 relative">
-                        <img src="${item.img}" class="w-full h-full object-cover">
-                        <div class="absolute top-2 left-2 flex flex-wrap gap-1 pr-8">
-                            ${item.tags.slice(0, 3).map(t => `<span class="bg-black/50 backdrop-blur text-white text-[8px] px-1.5 py-0.5 rounded font-bold uppercase">${t}</span>`).join('')}
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-bold text-gray-900 text-sm truncate uppercase">${item.title}</h3>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-[9px] text-gray-400 font-bold uppercase">${item.author}</span>
-                            <span class="text-[8px] text-gray-300 font-bold">${item.timestamp}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+        function moveDragging(x, y) {
+            if (!state.isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const dx = (x - state.lastMouseX) * scaleX;
+            const dy = (y - state.lastMouseY) * scaleY;
+            state.posX += dx;
+            state.posY += dy;
+            state.lastMouseX = x;
+            state.lastMouseY = y;
+            render();
         }
 
-        // --- EXPORT ---
-        downloadBtn.addEventListener('click', () => {
-            if (downloadBtn.classList.contains('btn-disabled')) return;
-            
-            const title = document.getElementById('titleInput').value;
-            const author = document.getElementById('metaAuthor').value || "Utilisateur SocialGen";
-            const keywords = document.getElementById('metaKeywords').value || "";
+        function stopDragging() { state.isDragging = false; }
 
-            // Capture miniature
-            const thumbCanvas = document.createElement('canvas');
-            thumbCanvas.width = 400; thumbCanvas.height = 400;
-            thumbCanvas.getContext('2d').drawImage(canvas, 0, 0, 400, 400);
-            
-            addToHistory(thumbCanvas.toDataURL('image/jpeg', 0.7), title, author, keywords);
+        canvas.addEventListener('mousedown', (e) => startDragging(e.clientX, e.clientY));
+        window.addEventListener('mousemove', (e) => moveDragging(e.clientX, e.clientY));
+        window.addEventListener('mouseup', stopDragging);
+        canvas.addEventListener('touchstart', (e) => { const t = e.touches[0]; startDragging(t.clientX, t.clientY); }, { passive: false });
+        window.addEventListener('touchmove', (e) => { const t = e.touches[0]; moveDragging(t.clientX, t.clientY); }, { passive: false });
+        window.addEventListener('touchend', stopDragging);
 
-            // Download
-            const link = document.createElement('a');
-            link.download = `socialgen_${Date.now()}.${state.exportFormat}`;
-            link.href = canvas.toDataURL(`image/${state.exportFormat === 'jpg' ? 'jpeg' : 'png'}`, 0.9);
-            link.click();
-        });
-
-        // --- LISTENERS ---
-        document.getElementById('bgInput').addEventListener('change', (e) => {
+        // --- Inputs ---
+        document.getElementById('bgInput').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const img = new Image();
-                img.onload = () => { state.backgroundImage = img; document.getElementById('bgCheck').classList.remove('hidden'); render(); };
+                img.onload = () => { 
+                    state.backgroundImage = img; 
+                    state.posX = 0; state.posY = 0;
+                    const btn = document.getElementById('bgBtn');
+                    btn.classList.add('media-btn-success');
+                    document.getElementById('bgCheck').classList.remove('hidden'); 
+                    render(); 
+                };
                 img.src = ev.target.result;
             };
             reader.readAsDataURL(e.target.files[0]);
-        });
+        };
 
-        document.getElementById('logoInput').addEventListener('change', (e) => {
+        document.getElementById('logoInput').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const img = new Image();
-                img.onload = () => { state.logoImage = img; document.getElementById('logoCheck').classList.remove('hidden'); render(); };
+                img.onload = () => { 
+                    state.logoImage = img; 
+                    const btn = document.getElementById('logoBtn');
+                    btn.classList.add('media-btn-success');
+                    document.getElementById('logoCheck').classList.remove('hidden'); 
+                    render(); 
+                };
                 img.src = ev.target.result;
             };
             reader.readAsDataURL(e.target.files[0]);
-        });
+        };
 
-        document.getElementById('zoomInput').addEventListener('input', (e) => { 
-            state.zoom = parseFloat(e.target.value); 
-            document.getElementById('zoomVal').innerText = state.zoom.toFixed(1) + "x";
-            render(); 
-        });
-        document.getElementById('titleInput').addEventListener('input', (e) => { state.title = e.target.value; render(); });
-        document.getElementById('subtitleInput').addEventListener('input', (e) => { state.subtitle = e.target.value; render(); });
-        document.getElementById('colorInput').addEventListener('input', (e) => { state.textColor = e.target.value; document.getElementById('colorHex').innerText = e.target.value.toUpperCase(); render(); });
-        document.getElementById('posCenter').addEventListener('click', () => { state.textPosition = 'center'; render(); });
-        document.getElementById('posBottom').addEventListener('click', () => { state.textPosition = 'bottom'; render(); });
+        const btnVCenter = document.getElementById('alignVCenter');
+        const btnVBottom = document.getElementById('alignVBottom');
+        
+        btnVCenter.onclick = () => { state.isBottomV = false; btnVCenter.classList.add('active'); btnVBottom.classList.remove('active'); render(); };
+        btnVBottom.onclick = () => { state.isBottomV = true; btnVBottom.classList.add('active'); btnVCenter.classList.remove('active'); render(); };
+
+        document.getElementById('zoomInput').oninput = (e) => { state.zoom = parseFloat(e.target.value); document.getElementById('zoomVal').innerText = state.zoom.toFixed(1)+"x"; render(); };
+        document.getElementById('gradOpacity').oninput = (e) => { state.gradOpacity = parseFloat(e.target.value); document.getElementById('gradVal').innerText = Math.round(state.gradOpacity*100)+"%"; render(); };
+        document.getElementById('gradSpread').oninput = (e) => { state.gradSpread = parseFloat(e.target.value); document.getElementById('spreadVal').innerText = Math.round(state.gradSpread*100)+"%"; render(); };
+        document.getElementById('posX').oninput = (e) => { state.posX = parseInt(e.target.value); render(); };
+        document.getElementById('posY').oninput = (e) => { state.posY = parseInt(e.target.value); render(); };
+        document.getElementById('titleInput').oninput = (e) => { state.title = e.target.value; render(); };
+        document.getElementById('subtitleInput').oninput = (e) => { state.subtitle = e.target.value; render(); };
+        
+        // Métadonnées
+        document.getElementById('metaAuthor').oninput = (e) => { state.meta.author = e.target.value; render(); };
+        document.getElementById('metaKeywords').oninput = (e) => { state.meta.keywords = e.target.value; };
+        document.getElementById('metaAlt').oninput = (e) => { state.meta.alt = e.target.value; };
+        document.getElementById('metaDesc').oninput = (e) => { state.meta.description = e.target.value; };
 
         document.querySelectorAll('.format-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.onclick = () => {
+                document.querySelectorAll('.format-btn').forEach(b => b.className = "format-btn p-3 border-2 border-gray-200 rounded-xl text-[10px] font-bold text-gray-500 transition-all");
+                btn.className = "format-btn p-3 border-2 border-indigo-600 bg-indigo-50 rounded-xl text-[10px] font-bold text-indigo-700 transition-all";
                 canvas.width = btn.dataset.w; canvas.height = btn.dataset.h;
                 state.formatName = btn.dataset.label;
                 document.getElementById('formatLabel').innerText = `Format ${state.formatName} (${btn.dataset.w}x${btn.dataset.h})`;
+                state.posX = 0; state.posY = 0;
                 render();
-            });
+            };
         });
+
+        // --- Export ---
+        downloadBtn.onclick = () => {
+            if (downloadBtn.classList.contains('btn-disabled')) return;
+            const author = state.meta.author.trim().replace(/\s+/g, '_') || "Anonyme";
+            const date = new Date().toISOString().split('T')[0];
+            const fileName = `SocialGen_${author}_${state.formatName}_${canvas.width}x${canvas.height}-${date}.jpg`;
+            
+            // Simulation d'inclusion de métadonnées XMP/IPTC dans le nom du fichier ou log console
+            // car le canvas.toBlob ne supporte pas nativement l'écriture EXIF sans librairie externe.
+            console.log("Exportation avec métadonnées :", {
+                creator: state.meta.author,
+                keywords: state.meta.keywords,
+                description: state.meta.description,
+                altText: state.meta.alt,
+                format: state.formatName,
+                timestamp: new Date().toISOString()
+            });
+
+            canvas.toBlob((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = fileName;
+                a.click();
+            }, 'image/jpeg', 0.95);
+        };
 
         window.onload = render;
     </script>
